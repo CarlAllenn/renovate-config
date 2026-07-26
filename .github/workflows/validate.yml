@@ -14,8 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Validate preset against Renovate's own validator
+        with:
+          persist-credentials: false
+      # Validator pinned via mise (npm:renovate in mise.toml) — previously an
+      # unpinned `npx --yes renovate` on every run, the one ad-hoc tool left.
+      - uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise
+          version: 2026.7.12
+      - name: Validate presets against Renovate's own validator
         run: |
           for f in *.json; do
-            RENOVATE_CONFIG_FILE="$f" npx --yes --package renovate -- renovate-config-validator --strict
+            RENOVATE_CONFIG_FILE="$f" renovate-config-validator --strict
           done

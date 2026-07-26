@@ -32,6 +32,18 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s*\\w+_VERSION: (?<currentValue>\\S+)"
       ]
+    },
+    {
+      "description": "Track min_version in mise.toml so the floor keeps pace with the CI-pinned mise",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)mise\\.toml$/"],
+      "matchStrings": [
+        "min_version = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "depNameTemplate": "jdx/mise",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$",
+      "versioningTemplate": "loose"
     }
   ],
   "packageRules": [
@@ -58,6 +70,12 @@
     {
       "description": "Runtime dependencies lose human review to automerge, so they wait the docs-recommended 14-day malware-scanner window (security fixes bypass this)",
       "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "description": "mise-managed tools execute with full env access on dev machines and in CI - the same automerge-without-review rationale as runtime deps, so the same 14-day window (security fixes bypass this)",
+      "matchManagers": ["mise"],
       "matchUpdateTypes": ["minor", "patch"],
       "minimumReleaseAge": "14 days"
     },

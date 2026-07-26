@@ -1,11 +1,5 @@
-# Canonical mise settings baseline — copy-template class.
-#
-# Repos copy this block verbatim into the top of mise.toml; propagation is a
-# deliberate drift-audit, never automatic (see README.md in this directory).
-# Comment style is taplo-stable: multi-line commentary sits ABOVE its setting
-# (taplo reflows wrapped trailing comments into misaligned column-0 lines).
-# Established in issue #1 (mise baseline session, 2026-07-26).
-
+# Settings block: canonical baseline from templates/mise/settings.toml (this
+# repo is the origin; the block is identical by construction).
 min_version = "2026.7.12"
 
 [settings]
@@ -26,3 +20,10 @@ lockfile_platforms = ["macos-arm64", "linux-x64", "linux-arm64"]
 # asdf plugins are legacy (single-maintainer bash, no checksums); ubi is
 # deprecated upstream in favor of github:.
 disable_backends = ["asdf", "ubi"]
+# Repo-local: renovate's dependency graph is too large for mise's embedded
+# aube resolver; shell out to the npm CLI (lifecycle scripts stay ignored).
+npm.shell_out = true
+
+[tools]
+node = "26.5.0" # runtime for renovate-config-validator
+"npm:renovate" = "43.279.0"

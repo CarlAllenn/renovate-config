@@ -11,10 +11,15 @@ off-limits.
   via `github>CarlAllenn/renovate-config`. Policy changes happen HERE, never
   in per-repo `renovate.json` files (those hold only repo-local rules).
   Decision record: ADR 0018 in monumental-archive (`docs/decisions/`).
-- `templates/` — canonical per-tool baselines (mise and task done — issues
-  #1–#2; next: lefthook, linters, supply-chain, CI — issues #3–#6, then #7
+- `templates/` — canonical per-tool baselines (mise, task, lefthook done —
+  issues #1–#3; next: linters, supply-chain, CI — issues #4–#6, then #7
   scanners). Copy-template class: propagation to repos is a deliberate
   drift-audit, not automatic.
+- `lefthook/universal.yml` — the shared git-hook job set, consumed LIVE by
+  the active repos via lefthook `remotes:` (no ref, 24h refetch). This path
+  is load-bearing: renaming it breaks hook updates in every consuming repo.
+  Decision record: `templates/lefthook/README.md`. Changes must pass
+  `lefthook validate` (CI enforces; pre-commit hook runs it locally).
 
 ## Working rules
 

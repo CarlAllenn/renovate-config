@@ -27,3 +27,9 @@ jobs:
           for f in *.json; do
             RENOVATE_CONFIG_FILE="$f" renovate-config-validator --strict
           done
+      # A broken universal.yml reaches every dev machine within 24h (live
+      # remote consumption) — gate it like the presets.
+      - name: Validate lefthook configs
+        run: |
+          LEFTHOOK_CONFIG=lefthook/universal.yml lefthook validate
+          lefthook validate

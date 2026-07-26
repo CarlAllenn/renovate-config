@@ -1,0 +1,41 @@
+---
+# Git hooks for this repo (dogfood). The universal job set lives in
+# lefthook/universal.yml and is consumed by the active repos via `remotes:`;
+# this repo can't consume it itself without carrying the whole shared linter
+# toolchain (issue #4/#5 scope), so it runs the gates that actually protect
+# consumers: preset validation and universal-config validation.
+
+min_version: 2.1.7
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: renovate-config-validator
+      glob: "*.json"
+      run: |
+        for f in {staged_files}; do
+          RENOVATE_CONFIG_FILE="$f" renovate-config-validator --strict
+        done
+      fail_text: "a broken preset breaks Renovate in every consuming repo at once"
+
+    - name: lefthook-validate
+      glob: "lefthook/*.{yml,yaml}"
+      run: LEFTHOOK_CONFIG=lefthook/universal.yml lefthook validate
+      fail_text: "a broken universal.yml reaches every dev machine within 24h"
+
+commit-msg:
+  jobs:
+    - name: conventional-commit
+      # Copy of the job in lefthook/universal.yml (see the note there); keep
+      # the two in sync.
+      run: |
+        first_line=$(head -n1 {1})
+        pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .{1,72}$'
+        if ! printf '%s' "$first_line" | grep -qE "$pattern"; then
+          echo "commit-msg: first line must be conventional: type(scope)?: subject (<=72 chars)" >&2
+          echo "  types: feat fix docs style refactor perf test build ci chore revert" >&2
+          echo "  got: $first_line" >&2
+          exit 1
+        fi
+      fail_text: "conventional commit format required"

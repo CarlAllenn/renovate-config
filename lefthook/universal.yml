@@ -1,0 +1,80 @@
+---
+# Universal lefthook jobs for all active repos, consumed LIVE via `remotes:`
+# from each repo's lefthook.yml — a change here propagates to every dev
+# machine within refetch_frequency (24h), no per-repo commit. Decision
+# record: templates/lefthook/README.md. Per-stack jobs stay in each repo's
+# own lefthook.yml; personal overrides go in lefthook-local.yml (gitignored).
+#
+# Merge order: lefthook.yml -> extends -> remotes (this file) ->
+# lefthook-local.yml. Jobs are named, so a lefthook-local.yml can override
+# one by name — but the policy is: comply with the tools; fixing output is
+# never optional.
+#
+# Tool configs are the conventionally shared dotfiles in each repo
+# (.shellcheckrc enable=all, .yamllint, .markdownlint-cli2.jsonc,
+# .codespellrc, .editorconfig); tools are pinned per-repo via mise.
+
+# Floor, not the pin (mise pins the exact version per repo): 2.1.7 is where
+# stage_fixed gained its safety guarantees (auto-stage only when safe, always
+# restore unstaged changes), which the fix-mode formatter jobs rely on.
+min_version: 2.1.7
+
+# A missing lefthook binary must fail the hook, not silently run nothing.
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: shfmt
+      glob: "*.sh"
+      run: shfmt -s -i 2 -ci -bn -sr -w {staged_files}
+      stage_fixed: true
+
+    - name: shellcheck
+      glob: "*.sh"
+      run: shellcheck {staged_files}
+
+    - name: yamllint
+      glob: "*.{yml,yaml}"
+      run: yamllint --strict {staged_files}
+
+    - name: taplo
+      glob: "*.toml"
+      run: taplo fmt {staged_files} && taplo lint {staged_files}
+      stage_fixed: true
+
+    - name: markdownlint
+      glob: "*.md"
+      run: markdownlint-cli2 --fix {staged_files}
+      stage_fixed: true
+
+    - name: codespell
+      run: codespell
+
+    - name: editorconfig
+      run: ec {staged_files}
+
+    - name: actionlint
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: actionlint
+
+    - name: zizmor
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: zizmor --min-severity low .github/workflows/
+
+commit-msg:
+  jobs:
+    - name: conventional-commit
+      # Inlined (not a script) because remote scripts would require a root
+      # .lefthook/ dir in this repo; keep in sync with the copy in this
+      # repo's own lefthook.yml.
+      run: |
+        first_line=$(head -n1 {1})
+        pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .{1,72}$'
+        if ! printf '%s' "$first_line" | grep -qE "$pattern"; then
+          echo "commit-msg: first line must be conventional: type(scope)?: subject (<=72 chars)" >&2
+          echo "  types: feat fix docs style refactor perf test build ci chore revert" >&2
+          echo "  got: $first_line" >&2
+          exit 1
+        fi
+      fail_text: "conventional commit format required"

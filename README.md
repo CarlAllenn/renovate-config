@@ -62,11 +62,15 @@ pull_request:
 Apply the `stop-updating` label to any Renovate PR to freeze it (no rebases,
 no CI reruns) while keeping it open and visible. Remove the label to resume.
 
-## Future
+## Beyond Renovate presets
 
-This repo will also grow a `templates/` directory of canonical per-tool
-baselines (mise settings block, biome, trivy, lefthook, editorconfig) —
-copy-template class, synced by drift audits rather than live propagation.
+- `templates/` — canonical per-tool baselines (mise, task, lefthook so far;
+  linters, supply-chain, CI to follow) — copy-template class, synced by
+  deliberate drift audits rather than live propagation.
+- `lefthook/universal.yml` — the shared git-hook job set, consumed **live**
+  by every active repo via lefthook `remotes:` (the one tool besides
+  Renovate itself with a stable first-class remote-config mechanism).
+  Decision record and consumer skeleton: `templates/lefthook/README.md`.
 
 Decision record: `docs/decisions/0018-renovate-shared-preset.md` in
 monumental-archive.

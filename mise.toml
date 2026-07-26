@@ -24,6 +24,14 @@ disable_backends = ["asdf", "ubi"]
 # aube resolver; shell out to the npm CLI (lifecycle scripts stay ignored).
 npm.shell_out = true
 
+# Bootstrap guarantee: a fresh clone gets its git hooks installed by the
+# standard `mise install`; without this, .git/hooks/ is empty and the whole
+# enforcement layer silently doesn't exist. Idempotent; lefthook auto-resyncs
+# hooks on every run thereafter.
+[hooks]
+postinstall = "lefthook install"
+
 [tools]
+lefthook = "2.1.10"
 node = "26.5.0" # runtime for renovate-config-validator
 "npm:renovate" = "43.279.0"

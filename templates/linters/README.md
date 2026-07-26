@@ -46,8 +46,11 @@ exclude mechanism, so whole-tree `.` would walk `.git/` and `.claude/`).
   so genuinely unbreakable lines (URLs) don't hard-fail with no fix.
 - **codespell builtins `code` and `names` off**: they exist to catch
   code-words (`uint`) and proper names used *outside* code — in a codebase
-  they flag legitimate identifiers by design. `en_to_en-OX` off: we write
-  en-US, enforced by `en-GB_to_en-US`.
+  they flag legitimate identifiers by design. Dialect dictionaries all off:
+  Carl writes en-GB, and codespell ships no en-US→en-GB dictionary —
+  `en-GB_to_en-US` would enforce the wrong direction, so dialect consistency
+  is editorial, not machine-enforced. (`en_to_en-OX` exists if Oxford
+  spelling — -ize endings — is ever wanted.)
 - **editorconfig `max_line_length` unset**: line length is owned per-language
   by the responsible linter (yamllint/markdownlint at 120, rustfmt at 100);
   a global ec check would hard-fail unfixable long string literals.

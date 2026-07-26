@@ -1,0 +1,132 @@
+---
+# Canonical Taskfile skeleton (renovate-config templates/task, issue #2).
+# Copy-template class: copy in, adapt the per-stack parts, keep the shape.
+version: "3"
+
+# Every command runs with bash strict mode: exit on error, unset vars are
+# errors, pipeline failures propagate.
+set: [errexit, nounset, pipefail]
+
+tasks:
+  ci:
+    desc: Everything CI runs — the full gate, identical locally and on GitHub
+    # Independent gates run as parallel deps; ordered stages (builds, smoke,
+    # scans that need built artifacts) go in cmds afterwards.
+    deps: [lint, test]
+
+  lint:
+    desc: Run every linter over the whole repository
+    deps:
+      - lint:yaml
+      - lint:toml
+      - lint:md
+      - lint:spell
+      - lint:ec
+      - lint:shell
+      - lint:actions
+
+  # --- universal enforcement layer (matches the mise universal tool set) ---
+  # Every task is fingerprinted: sources = its file class + its own config +
+  # the pinned toolchain (mise.toml/mise.lock). Unchanged inputs skip the
+  # run; `task --force` overrides. Security/secret scanners are the one
+  # class that must NEVER be fingerprinted.
+
+  lint:yaml:
+    desc: yamllint (strict) over all YAML
+    method: checksum
+    sources:
+      - "**/*.yml"
+      - "**/*.yaml"
+      - .yamllint
+      - mise.toml
+      - mise.lock
+    cmds:
+      - yamllint --strict .
+
+  lint:toml:
+    desc: taplo format-check + lint over all TOML
+    method: checksum
+    sources:
+      # mise.toml/mise.lock are TOML — the file class already covers the pin
+      - "**/*.toml"
+    cmds:
+      - taplo fmt --check
+      - taplo lint
+
+  lint:md:
+    desc: markdownlint over all Markdown
+    method: checksum
+    sources:
+      - "**/*.md"
+      - .markdownlint-cli2.jsonc
+      - mise.toml
+      - mise.lock
+    cmds:
+      - markdownlint-cli2
+
+  lint:spell:
+    desc: codespell over the repository
+    method: checksum
+    sources: &whole-tree-sources
+      - "**/*"
+      - exclude: .task/**
+      - exclude: .git/**
+      - exclude: node_modules/**
+      - exclude: target/**
+      - exclude: vendor/**
+    cmds:
+      - codespell
+
+  lint:ec:
+    desc: editorconfig-checker over all tracked files
+    method: checksum
+    sources: *whole-tree-sources
+    cmds:
+      - git ls-files | xargs ec
+
+  lint:shell:
+    desc: shellcheck + shfmt (check mode) over shell scripts
+    method: checksum
+    sources:
+      - "**/*.sh"
+      - .shellcheckrc
+      - mise.toml
+      - mise.lock
+    cmds:
+      - |
+        files=$(git ls-files '*.sh')
+        [ -z "$files" ] && exit 0
+        shfmt -s -i 2 -ci -bn -sr -d $files
+        shellcheck $files
+
+  lint:actions:
+    desc: actionlint + zizmor over GitHub Actions workflows
+    method: checksum
+    sources:
+      - .github/workflows/**
+      - .github/zizmor.yml
+      - mise.toml
+      - mise.lock
+    cmds:
+      - |
+        [ -d .github/workflows ] || exit 0
+        actionlint
+        zizmor --min-severity low .github/workflows/
+
+  # --- per-stack (replace with the repo's real gates) ---------------------
+
+  test:
+    desc: Run all tests
+    # Fingerprint with the stack's source set, e.g. Rust:
+    # method: checksum
+    # sources: ["**/*.rs", "**/Cargo.toml", "Cargo.lock", mise.toml, mise.lock]
+    cmds:
+      - echo "replace with the repo's test suite"
+
+  fmt:
+    desc: Apply all formatters (never fingerprinted — always writes)
+    cmds:
+      - taplo fmt
+      - |
+        files=$(git ls-files '*.sh')
+        [ -n "$files" ] && shfmt -s -i 2 -ci -bn -sr -w $files || true

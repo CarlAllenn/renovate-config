@@ -16,9 +16,9 @@
   },
   "customManagers": [
     {
-      "description": "Track mise's own version pinned in the CI workflow",
+      "description": "Track mise's own version pinned in workflows (mise-action version input)",
       "customType": "regex",
-      "managerFilePatterns": ["/^\\.github/workflows/ci\\.ya?ml$/"],
+      "managerFilePatterns": ["/^\\.github/workflows/.+\\.ya?ml$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>[^ ]+) depName=(?<depName>\\S+)\\n\\s+version: (?<currentValue>\\S+)"
       ],

@@ -7,6 +7,9 @@ version: "3"
 # errors, pipeline failures propagate.
 set: [errexit, nounset, pipefail]
 
+# Parallel deps interleave output; prefix each line with its task name.
+output: prefixed
+
 tasks:
   ci:
     desc: Everything CI runs — the full gate, identical locally and on GitHub

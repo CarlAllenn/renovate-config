@@ -54,9 +54,12 @@ has stable remote configs; that's where live propagation genuinely fits.)
      toolchain** (`mise.toml`, `mise.lock`);
    - err on over-triggering — a missed source is a false skip and treated
      as a bug;
-   - **never fingerprint security/secret scanners** (trivy fs,
-     `scan:bases`-class policy gates): they must look at whatever changed,
-     whatever it is;
+   - **never fingerprint security/secret scanners** — trivy fs,
+     `scan:bases`-class policy gates, AND vulnerability scans of built
+     artifacts: they must look at whatever changed, whatever it is, and CVE
+     scans have an input (the vulnerability database) no source checksum
+     can see. Repos with an always-on scan family add a weekly `schedule:`
+     trigger to the ci workflow so new CVEs surface during quiet weeks;
    - Task writes a checksum only after the task succeeds, and CI caches
      save only on green jobs — a failing gate can never be cached green;
    - `task --force` and an uncached CI run are the escape hatches;
@@ -68,10 +71,13 @@ has stable remote configs; that's where live propagation genuinely fits.)
    `task-fingerprints-` restore-key: always saved on green, and a partial
    hit is safe because Task re-verifies every checksum against the actual
    sources.
-7. **Safety idioms.** `prompt:` on destructive tasks, `preconditions:` with
+7. **`run: once`** on build-ish tasks that multiple gates dep on (image
+   builds, tool bootstraps): at most one execution per invocation.
+   **`output: prefixed`** at the root: parallel deps interleave otherwise.
+8. **Safety idioms.** `prompt:` on destructive tasks, `preconditions:` with
    `msg:` for environment assumptions, `requires: vars:` for parameterized
    tasks, `interactive: true` for TTY tasks.
-8. **Prefer external scripts** (`scripts/*.sh`, themselves shellcheck'd)
+9. **Prefer external scripts** (`scripts/*.sh`, themselves shellcheck'd)
    over inline blocks once a command exceeds ~5 lines, per the upstream
    style guide.
 

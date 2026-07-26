@@ -19,6 +19,13 @@ name: scheduled
 permissions:
   contents: read
 
+# Queue, don't cancel: every completed scanner run is a useful result (the
+# same rationale as fuzz-style workflows), and overlap is only possible via
+# a manual dispatch during the weekly run.
+concurrency:
+  group: scheduled-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   zizmor-online:
     name: zizmor online audits

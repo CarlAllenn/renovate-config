@@ -11,9 +11,10 @@ off-limits.
   via `github>CarlAllenn/renovate-config`. Policy changes happen HERE, never
   in per-repo `renovate.json` files (those hold only repo-local rules).
   Decision record: ADR 0018 in monumental-archive (`docs/decisions/`).
-- `templates/` — canonical per-tool baselines (mise done — issue #1; next:
-  task, lefthook, linters, supply-chain, CI — issues #2–#6). Copy-template
-  class: propagation to repos is a deliberate drift-audit, not automatic.
+- `templates/` — canonical per-tool baselines (mise and task done — issues
+  #1–#2; next: lefthook, linters, supply-chain, CI — issues #3–#6, then #7
+  scanners). Copy-template class: propagation to repos is a deliberate
+  drift-audit, not automatic.
 
 ## Working rules
 
@@ -24,10 +25,10 @@ off-limits.
 - The repo name (`renovate-config`) and `default.json` filename are
   load-bearing: they trigger auto-suggestion when onboarding new repos.
   Don't rename either.
-- The roadmap for building out `templates/` is issues #2–#7, in order
-  (#1, mise, is done — the session that set the method).
-  Method per tool: read the docs end to end → decide with Carl → canonize
-  here → de-drift the three repos.
+- The roadmap for building out `templates/` is issues #3–#7, in order
+  (#1 mise and #2 task are done). Method per tool: read the docs end to
+  end → decide with Carl → canonize here → de-drift the three repos fully
+  in the same session (implementation included, not just the pattern).
 - Consuming repos' CI must trigger on push to `renovate/**` branches
   (branch automerge needs the check on the branch). Keep the README's
   CI-prerequisite section accurate if policy changes.

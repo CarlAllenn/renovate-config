@@ -12,9 +12,10 @@ ignore:
   # yamllint DOES traverse it, disproving the #3-era assumption); .claude/ is
   # machine-local session state (may contain whole worktrees of other
   # checkouts).
-  - .git/ Repo-local entries follow, one per line,
-  # each with a reason (build outputs, vendored trees).
+  - .git/
   - .claude/
+  # Repo-local entries follow, one per line, each with a reason (build
+  # outputs, vendored trees).
   - target/
 
 rules:

@@ -62,10 +62,11 @@ pre-commit:
       # Pedantic persona per the max-enforcement baseline; no severity floor.
       # --offline: the online audits are time-varying advisory lookups
       # (never-fingerprint class, scheduled-scan scope — issue #7); a commit
-      # gate must be deterministic. `.` collects composite actions and
-      # dependabot/pre-commit configs too, not just workflows/.
+      # gate must be deterministic. .github/ scope collects workflows AND
+      # composite actions/dependabot configs while keeping collection out of
+      # .git/ and .claude/ (zizmor has no exclude mechanism).
       glob: .github/**/*.{yml,yaml}
-      run: zizmor --persona=pedantic --offline .
+      run: zizmor --persona=pedantic --offline .github/
 
 commit-msg:
   jobs:

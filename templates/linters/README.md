@@ -28,7 +28,8 @@ every repo-local exclude carries an inline reason.
 zizmor needs no config file: since v1.20 its defaults already require
 hash-pinning for every `uses:` and nothing is ignored. Its strictness lives
 in the invocation (`lefthook/universal.yml`): `--persona=pedantic`, no
-`--min-severity` filter, whole-tree collection.
+`--min-severity` filter, `.github/` collection scope (zizmor has no
+exclude mechanism, so whole-tree `.` would walk `.git/` and `.claude/`).
 
 ## Decisions (rules deliberately off, and why)
 

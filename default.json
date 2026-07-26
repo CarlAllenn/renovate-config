@@ -1,0 +1,82 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Shared Renovate policy for all CarlAllenn repos. Policy rationale lives in this repo's README; repo-specific rules stay in each repo's renovate.json.",
+  "extends": [
+    "config:best-practices",
+    ":semanticCommits",
+    ":separateMultipleMajorReleases",
+    "group:linters"
+  ],
+  "minimumReleaseAge": "3 days",
+  "osvVulnerabilityAlerts": true,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "automergeType": "branch"
+  },
+  "customManagers": [
+    {
+      "description": "Track mise's own version pinned in the CI workflow",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/ci\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[^ ]+) depName=(?<depName>\\S+)\\n\\s+version: (?<currentValue>\\S+)"
+      ],
+      "extractVersionTemplate": "^v(?<version>.*)$",
+      "versioningTemplate": "loose"
+    },
+    {
+      "description": "Generic: '# renovate:' comments above *_VERSION env pins in workflows",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/.+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s*\\w+_VERSION: (?<currentValue>\\S+)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Non-major updates for semver-stable (>=1.0) packages automerge as silent branch pushes once CI is green; a PR only appears if CI goes red",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "description": "0.x packages: automerge patches only - SemVer allows 0.x minors to break, so those stay manual PRs",
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "/^0/",
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "description": "Digest and pin-only updates automerge as silent branch pushes",
+      "matchUpdateTypes": ["digest", "pin", "pinDigest"],
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "description": "Runtime dependencies lose human review to automerge, so they wait the docs-recommended 14-day malware-scanner window (security fixes bypass this)",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "description": "Group mise-managed tool pins into one PR (rust toolchain rides separately)",
+      "matchManagers": ["mise"],
+      "matchDepNames": ["!rust"],
+      "groupName": "mise tools"
+    },
+    {
+      "description": "Rust toolchain: own PR, never automerged - bumping MSRV is a deliberate decision",
+      "matchManagers": ["mise"],
+      "matchDepNames": ["rust"],
+      "automerge": false
+    },
+    {
+      "description": "Biome rides with the linters group (absent from Renovate's group:linters preset as of 2026-07)",
+      "matchPackageNames": ["@biomejs/**"],
+      "groupName": "linters"
+    }
+  ]
+}

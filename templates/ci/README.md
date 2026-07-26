@@ -97,6 +97,34 @@ CycloneDX adds nothing at this scale.
   green jobs, and on restore task re-verifies every checksum — a failing
   gate can never be cached green; a stale entry simply re-runs.
 
+## Decision record: scheduled scanners workflow (issue #7)
+
+`scheduled.yml` in this directory is the second canonical workflow: the
+home of the **never-fingerprint scanner class**, whose inputs (the GitHub
+API, the public internet) change without commits. Two jobs: zizmor's six
+online audits (the issue #4 handoff — commit/CI gates stay `--offline`)
+and lychee link checking (canon: `templates/lychee/`).
+
+- **Separate file, not conditional jobs in ci.yml**: keeps ci.yml purely
+  deterministic, avoids permanently-skipped jobs in every PR's check list,
+  and quarantines the one job that cannot have an egress allowlist —
+  lychee runs harden-runner in **audit** mode (arbitrary egress is its
+  purpose; the allowlist would be the link list). That exception is
+  tolerable only in a workflow where no secret-bearing job shares a run;
+  it never dilutes the block-mode gates.
+- **Failure surfacing**: the red run plus GitHub's workflow-failure
+  notification. No issue-filing action — the sanctioned set stays closed
+  for notification plumbing.
+- ci.yml's own weekly cron (DB-driven deterministic gates re-run: trivy,
+  cargo-deny advisories) is unchanged; scheduled.yml crons one hour later.
+
+The deterministic scanners issue #7 added land in ci.yml, not here:
+gitleaks full-history scan (every repo; `fetch-depth: 0`, ruleset ships in
+the pinned binary — record: `templates/gitleaks/README.md`), cargo-machete
+(Rust repos — record: `templates/cargo-machete/README.md`), and
+cargo-semver-checks (published crates, edtf — record:
+`templates/cargo-semver-checks/README.md`).
+
 ## Canonical prologue
 
 `prologue.yml` in this directory is the copy-source for the workflow-level

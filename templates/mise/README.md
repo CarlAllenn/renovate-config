@@ -74,12 +74,16 @@ format has a linter, warnings are errors"):
 | `pipx:codespell` | pipx | spelling |
 | `node` + `npm:markdownlint-cli2` | core + npm | Markdown lint |
 | `uv` | aqua | python tool installer (backs `pipx:` tools) |
+| `gitleaks` | aqua | secret scan (staged pre-commit + CI history scan) |
+| `lychee` | aqua | link check (weekly `scheduled.yml` only) |
 
 Per-stack additions (repo-local, in that repo's `mise.toml`):
 
 - **Rust**: `rust` (with `components = "rustfmt,clippy"`, plus `targets` for
-  cross targets like wasm), `aqua:EmbarkStudios/cargo-deny`, and `cargo:`
+  cross targets like wasm), `aqua:EmbarkStudios/cargo-deny`,
+  `github:bnjbvr/cargo-machete` (unused deps; not in aqua), and `cargo:`
   build tools the CI needs (e.g. `cargo-pgrx`, `cargo-fuzz`, `wasm-pack`).
+- **Published crates** (edtf): `github:obi1kenobi/cargo-semver-checks`.
 - **Containers / deploy** (monumental-archive): `hadolint`, `trivy`,
   `cosign`, `ruby` (kamal via Gemfile), `go` (demesne build), `http:atlas`.
 - **Python**: `ruff`, `pipx:sqlfluff`.

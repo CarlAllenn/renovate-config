@@ -58,6 +58,15 @@ pre-commit:
       glob: .github/workflows/*.{yml,yaml}
       run: actionlint
 
+    - name: gitleaks
+      # Upstream's own pre-commit invocation. No glob: any file type can
+      # carry a secret. Ruleset ships inside the mise-pinned binary, so the
+      # gate is deterministic. Escapes: inline `#gitleaks:allow` with a
+      # reason, or a .gitleaksignore fingerprint with a why-comment. The
+      # full-history layer is each repo's ci.yml. Decision record:
+      # templates/gitleaks/README.md.
+      run: gitleaks git --pre-commit --redact --staged --verbose --no-banner
+
     - name: zizmor
       # Pedantic persona per the max-enforcement baseline; no severity floor.
       # --offline: the online audits are time-varying advisory lookups

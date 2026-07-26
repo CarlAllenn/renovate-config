@@ -8,8 +8,13 @@
 extends: default
 
 ignore:
-  # Repo-local entries only, one per line, each with a reason. Build outputs
-  # and vendored trees go here (e.g. target/, vendor/, node_modules/).
+  # Canonical: .git/ holds the lefthook remote cache (YAML that isn't ours —
+  # yamllint DOES traverse it, disproving the #3-era assumption); .claude/ is
+  # machine-local session state (may contain whole worktrees of other
+  # checkouts).
+  - .git/ Repo-local entries follow, one per line,
+  # each with a reason (build outputs, vendored trees).
+  - .claude/
   - target/
 
 rules:

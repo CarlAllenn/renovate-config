@@ -69,8 +69,11 @@ in the invocation (`lefthook/universal.yml`): `--persona=pedantic`, no
 
 ## The .git/ rule
 
-taplo and markdownlint-cli2 are the two scanners that traverse `.git/`
-(all tested empirically, issue #3); codespell joins them once
-`check-hidden = true` is on. All three must exclude it — the lefthook
+taplo, markdownlint-cli2, and yamllint all traverse `.git/` (the issue #3
+session's "only two scanners" finding missed yamllint because the remote
+cache didn't exist in the repo it tested); codespell joins them once
+`check-hidden = true` is on. All four must exclude it — the lefthook
 remote cache (`.git/info/lefthook-remotes/`) contains files formatted under
-another repo's settings.
+another repo's settings. `.claude/` (machine-local session state, possibly
+whole worktrees of other checkouts) is excluded by the same logic in every
+tree-walking linter, ec included.

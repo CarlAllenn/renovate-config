@@ -1,0 +1,91 @@
+# Canonical cargo-deny baseline — copy-template class.
+#
+# Repos copy this file to deny.toml and fill the per-repo sections marked
+# PER-REPO (license allowlist, build-script allowlist, skips/ignores);
+# propagation is a deliberate drift-audit, never automatic (see README.md in
+# this directory). CI must run `cargo deny check -D unmatched-skip` so stale
+# skip/ignore entries fail instead of lingering as warnings.
+# Established in issue #5 (supply-chain baseline session, 2026-07-26).
+
+[graph]
+# Check the graph with every feature enabled — default feature resolution can
+# hide whole feature-gated subtrees from all four checks.
+all-features = true
+
+[advisories]
+# v2 semantics: vulnerability/unsound/notice advisories error unconditionally;
+# the only opt-out is a reasoned `ignore` entry.
+yanked = "deny"
+# Stale ignore entries fail the check instead of lingering.
+unused-ignored-advisory = "deny"
+# Every entry needs id/crate + reason:
+# ignore = [
+#   { id = "RUSTSEC-0000-0000", reason = "why it does not apply, YYYY-MM-DD" },
+# ]
+
+[licenses]
+# PER-REPO: exactly the licenses present in the tree today — extended
+# deliberately, fail-closed, when a new dependency arrives with a new
+# (permissive) one. Each addition gets a comment naming the crate(s) that
+# need it.
+allow = []
+# An allowlist entry no longer used by any crate fails the check — the list
+# can only ever describe the actual tree.
+unused-allowed-license = "deny"
+unused-license-exception = "deny"
+# Workspace crates are unpublished; their own (copyleft) license is not a
+# dependency-policy concern.
+private = { ignore = true }
+
+[bans]
+# Duplicate crate versions fail the check; temporary tolerances are reasoned
+# `skip` entries with version pins, which CI turns into errors once stale
+# (-D unmatched-skip).
+multiple-versions = "deny"
+multiple-versions-include-dev = true
+wildcards = "deny"
+# Path/git wildcards inside the workspace are how Cargo spells intra-repo
+# deps; crates.io forbids publishing them, so this only relaxes private crates
+# and dev-deps.
+allow-wildcard-paths = true
+# skip = [
+#   { crate = "dup@1.2.3", reason = "crate-x lags, see <PR link>, YYYY-MM-DD" },
+# ]
+
+[bans.workspace-dependencies]
+# All direct deps declared once in [workspace.dependencies]; duplicates and
+# unused declarations fail.
+duplicates = "deny"
+include-path-dependencies = true
+unused = "deny"
+
+# Crates fully/partially replaced by std/core fail (deny is the default once
+# the table is present).
+[bans.std-replacements]
+
+[bans.build]
+# PER-REPO: exactly the crates in the tree that legitimately need a build
+# script or are proc-macros with compile-time execution — the Rust twin of
+# pnpm's allowBuilds. Enumerate from the lockfile; every entry gets a comment.
+# An empty list means "no build scripts allowed"; delete the field entirely
+# only with a recorded reason.
+allow-build-scripts = []
+# Native executables and interpreted scripts shipped inside compile-time
+# crates fail; per-crate checksummed bypasses only.
+executables = "deny"
+interpreted = "deny"
+enable-builtin-globs = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+# Pinned explicitly rather than relying on the default.
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+# Git dependencies must pin a rev — anything looser is a floating dependency
+# on someone else's branch.
+required-git-spec = "rev"
+# Stale source allowances fail the check.
+unused-allowed-source = "deny"
+unused-allowed-org = "deny"
+# PER-REPO, temporary by construction — each entry names the tracking issue:
+# allow-git = ["https://github.com/org/fork"] # issue #NN, remove with patch

@@ -24,7 +24,8 @@ off-limits.
 - The repo name (`renovate-config`) and `default.json` filename are
   load-bearing: they trigger auto-suggestion when onboarding new repos.
   Don't rename either.
-- The roadmap for building out `templates/` is issues #1–#6, in order.
+- The roadmap for building out `templates/` is issues #2–#7, in order
+  (#1, mise, is done — the session that set the method).
   Method per tool: read the docs end to end → decide with Carl → canonize
   here → de-drift the three repos.
 - Consuming repos' CI must trigger on push to `renovate/**` branches

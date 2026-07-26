@@ -84,6 +84,20 @@ artifact a repo actually ships, at the job that builds it:
 Format: SPDX-JSON (sbom-action default) — broadest ecosystem tooling;
 CycloneDX adds nothing at this scale.
 
+## Single-purpose jobs install only their own tools
+
+Any job that exists to run one tool (the gitleaks history scan, the
+scheduled scanners, semver-checks) sets mise-action's
+`install_args: <tool> [task]` instead of installing the whole `mise.toml`
+toolchain. Three wins, found the hard way in issue #7: cold-cache runs
+drop from minutes (full toolchain) to seconds; the job's harden-runner
+allowlist shrinks to the mise/GitHub/sigstore set instead of every
+toolchain vendor; and the per-job cache (keyed on `install_args_hash`)
+stops churning with unrelated tool bumps. `MISE_DISABLE_TOOLS` is the
+inverse pattern — a denylist that silently grows stale as tools join
+`mise.toml` — and is superseded by `install_args` allowlisting wherever a
+job's tool set is enumerable.
+
 ## Cache rules
 
 - Exact key per input-hash (or per-sha for `.task` fingerprints) with

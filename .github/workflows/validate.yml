@@ -75,20 +75,16 @@ jobs:
         with:
           egress-policy: block
           disable-sudo: true
-          # gitleaks itself makes no network calls; universal cold-cache
-          # set (templates/ci/prologue.yml).
+          # gitleaks itself makes no network calls; minimal cold-cache
+          # set for the gitleaks-only install (see install_args below).
           allowed-endpoints: >
             api.github.com:443
             codeload.github.com:443
-            files.pythonhosted.org:443
             github.com:443
             mise-versions.jdx.dev:443
             mise.jdx.dev:443
-            nodejs.org:443
             objects.githubusercontent.com:443
-            pypi.org:443
             raw.githubusercontent.com:443
-            registry.npmjs.org:443
             release-assets.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -101,6 +97,9 @@ jobs:
         with:
           # renovate: datasource=github-releases depName=jdx/mise
           version: 2026.7.12
+          # Scanner jobs install only their own tools — the history scan
+          # must not pay (or egress for) the whole toolchain.
+          install_args: gitleaks
       # No Taskfile in this repo — invoked directly, same flags as the
       # scan:secrets task the consuming repos wire.
       - run: gitleaks git --no-banner --redact --verbose .

@@ -11,9 +11,9 @@ off-limits.
   via `github>CarlAllenn/renovate-config`. Policy changes happen HERE, never
   in per-repo `renovate.json` files (those hold only repo-local rules).
   Decision record: ADR 0018 in monumental-archive (`docs/decisions/`).
-- `templates/` (planned) — canonical per-tool baselines (mise, task,
-  lefthook, linters, supply-chain, CI). Copy-template class: propagation to
-  repos is a deliberate drift-audit, not automatic.
+- `templates/` — canonical per-tool baselines (mise done — issue #1; next:
+  task, lefthook, linters, supply-chain, CI — issues #2–#6). Copy-template
+  class: propagation to repos is a deliberate drift-audit, not automatic.
 
 ## Working rules
 

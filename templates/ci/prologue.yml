@@ -36,16 +36,32 @@ jobs:
       # enforcement. Allowlist derived per job from an audit-mode run;
       # keep it sorted. Jobs that legitimately need root (apt-get) drop
       # disable-sudo with an inline reason.
+      #
+      # COLD-CACHE TRAP (found the hard way, issue #7): an audit run with a
+      # warm mise-action cache misses every install-time domain — any
+      # mise.toml change rotates the cache key and the next run downloads
+      # the full toolchain. The block below is the universal cold-cache
+      # set for the standard tool baseline (node, pipx-via-uv, npm tools,
+      # and mise's sigstore provenance verification). Rust jobs add
+      # static.rust-lang.org + the crates.io set.
       - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: block
           disable-sudo: true
           allowed-endpoints: >
             api.github.com:443
+            codeload.github.com:443
+            files.pythonhosted.org:443
             github.com:443
+            mise-versions.jdx.dev:443
             mise.jdx.dev:443
+            nodejs.org:443
             objects.githubusercontent.com:443
+            pypi.org:443
+            raw.githubusercontent.com:443
+            registry.npmjs.org:443
             release-assets.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

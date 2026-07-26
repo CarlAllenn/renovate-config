@@ -11,10 +11,12 @@ off-limits.
   via `github>CarlAllenn/renovate-config`. Policy changes happen HERE, never
   in per-repo `renovate.json` files (those hold only repo-local rules).
   Decision record: ADR 0018 in monumental-archive (`docs/decisions/`).
-- `templates/` — canonical per-tool baselines (mise, task, lefthook done —
-  issues #1–#3; next: linters, supply-chain, CI — issues #4–#6, then #7
-  scanners). Copy-template class: propagation to repos is a deliberate
-  drift-audit, not automatic.
+- `templates/` — canonical per-tool baselines (mise, task, lefthook, linters
+  done — issues #1–#4; next: supply-chain, CI — issues #5–#6, then #7
+  scanners; #8 covers non-universal linters per-repo). Copy-template class:
+  propagation to repos is a deliberate drift-audit, not automatic. The
+  linter bar is maximum enforcement — every rule on unless
+  `templates/linters/README.md` records why not.
 - `lefthook/universal.yml` — the shared git-hook job set, consumed LIVE by
   the active repos via lefthook `remotes:` (no ref, 24h refetch). This path
   is load-bearing: renaming it breaks hook updates in every consuming repo.
@@ -30,10 +32,11 @@ off-limits.
 - The repo name (`renovate-config`) and `default.json` filename are
   load-bearing: they trigger auto-suggestion when onboarding new repos.
   Don't rename either.
-- The roadmap for building out `templates/` is issues #3–#7, in order
-  (#1 mise and #2 task are done). Method per tool: read the docs end to
-  end → decide with Carl → canonize here → de-drift the three repos fully
-  in the same session (implementation included, not just the pattern).
+- The roadmap for building out `templates/` is issues #5–#8, in order
+  (#1 mise, #2 task, #3 lefthook, #4 linters are done). Method per tool:
+  read the docs end to end → decide with Carl → canonize here → de-drift
+  the three repos fully in the same session (implementation included, not
+  just the pattern).
 - Consuming repos' CI must trigger on push to `renovate/**` branches
   (branch automerge needs the check on the branch). Keep the README's
   CI-prerequisite section accurate if policy changes.

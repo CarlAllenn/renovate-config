@@ -64,9 +64,12 @@ no CI reruns) while keeping it open and visible. Remove the label to resume.
 
 ## Beyond Renovate presets
 
-- `templates/` — canonical per-tool baselines (mise, task, lefthook so far;
-  linters, supply-chain, CI to follow) — copy-template class, synced by
-  deliberate drift audits rather than live propagation.
+- `templates/` — canonical per-tool baselines (mise, task, lefthook, and the
+  nine universal linters so far; supply-chain and CI to follow) —
+  copy-template class, synced by deliberate drift audits rather than live
+  propagation. The linter decision record lives in
+  `templates/linters/README.md`; this repo consumes the universal lint layer
+  itself (dogfood) via the same `remotes:` mechanism as every active repo.
 - `lefthook/universal.yml` — the shared git-hook job set, consumed **live**
   by every active repo via lefthook `remotes:` (the one tool besides
   Renovate itself with a stable first-class remote-config mechanism).

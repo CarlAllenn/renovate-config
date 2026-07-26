@@ -10,9 +10,9 @@
 # one by name — but the policy is: comply with the tools; fixing output is
 # never optional.
 #
-# Tool configs are the conventionally shared dotfiles in each repo
-# (.shellcheckrc enable=all, .yamllint, .markdownlint-cli2.jsonc,
-# .codespellrc, .editorconfig); tools are pinned per-repo via mise.
+# Tool configs are the canonized dotfiles from templates/linters/ (copied
+# per repo, drift-audited deliberately — see that directory's README);
+# tools are pinned per-repo via mise.
 
 # Floor, not the pin (mise pins the exact version per repo): 2.1.7 is where
 # stage_fixed gained its safety guarantees (auto-stage only when safe, always
@@ -55,19 +55,23 @@ pre-commit:
       run: ec {staged_files}
 
     - name: actionlint
-      glob: ".github/workflows/*.{yml,yaml}"
+      glob: .github/workflows/*.{yml,yaml}
       run: actionlint
 
     - name: zizmor
-      glob: ".github/workflows/*.{yml,yaml}"
-      run: zizmor --min-severity low .github/workflows/
+      # Pedantic persona per the max-enforcement baseline; no severity floor.
+      # --offline: the online audits are time-varying advisory lookups
+      # (never-fingerprint class, scheduled-scan scope — issue #7); a commit
+      # gate must be deterministic. `.` collects composite actions and
+      # dependabot/pre-commit configs too, not just workflows/.
+      glob: .github/**/*.{yml,yaml}
+      run: zizmor --persona=pedantic --offline .
 
 commit-msg:
   jobs:
     - name: conventional-commit
       # Inlined (not a script) because remote scripts would require a root
-      # .lefthook/ dir in this repo; keep in sync with the copy in this
-      # repo's own lefthook.yml.
+      # .lefthook/ dir in this repo.
       run: |
         first_line=$(head -n1 {1})
         pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .{1,72}$'
@@ -77,4 +81,4 @@ commit-msg:
           echo "  got: $first_line" >&2
           exit 1
         fi
-      fail_text: "conventional commit format required"
+      fail_text: conventional commit format required

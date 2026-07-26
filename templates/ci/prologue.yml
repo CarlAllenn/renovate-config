@@ -1,0 +1,72 @@
+---
+# Canonical workflow prologue (issue #6). Copy-template: adapt names and
+# the cron rationale per repo; keep the shape. See README.md in this
+# directory for the decision records.
+name: ci
+
+"on":
+  push:
+    # renovate/**: branch-automerge needs the ci check on the branch itself
+    # (no PR is opened unless the branch goes red).
+    branches: [main, renovate/**]
+  pull_request: {}
+  schedule:
+    # Weekly full gate on main — only where a gate has an input (advisory
+    # or vulnerability database) that changes without commits; state which
+    # gate in this comment.
+    - cron: 0 6 * * 1
+
+# Top-level read-only; elevation is per-job, never here.
+permissions:
+  contents: read
+
+# A newer push to the same branch supersedes any run still in progress.
+# (Workflows whose runs do useful work regardless — fuzzing — set
+# cancel-in-progress: false so a newer trigger queues instead.)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      # First step of every job, before checkout: runtime egress
+      # enforcement. Allowlist derived per job from an audit-mode run;
+      # keep it sorted. Jobs that legitimately need root (apt-get) drop
+      # disable-sudo with an inline reason.
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          disable-sudo: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            mise.jdx.dev:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise
+          version: 2026.7.12
+
+      # go-task fingerprints (Taskfile `sources:`): a hit means a gate's
+      # inputs are byte-identical to a run that already passed, so it
+      # skips. go-task only writes checksums after a task succeeds, and
+      # actions/cache only saves on green jobs, so a failing gate can
+      # never be cached green; on restore, task re-verifies every checksum
+      # against the actual sources, so a stale entry simply re-runs.
+      - name: Cache task fingerprints
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .task
+          key: task-fingerprints-${{ github.sha }}
+          restore-keys: task-fingerprints-
+
+      - run: task ci

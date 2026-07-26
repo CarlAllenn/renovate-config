@@ -54,8 +54,14 @@ not just an audit log.
 - Recorded trade-off: harden-runner ships runtime telemetry to
   StepSecurity's API (its own endpoints are auto-allowed). That is the
   price of runtime egress visibility; the action is digest-pinned and
-  Renovate-tracked like everything else. Community tier covers public
-  repos only — all active repos are public.
+  Renovate-tracked like everything else.
+- Community-tier limits, verified empirically (2026-07-26): block-mode
+  **enforcement is local and works on private repos** (monumental-archive
+  runs enforced), but the insights dashboard needs the Enterprise app
+  there — allowlist changes are derived from logs/failures instead. ARM
+  runners (iiif-server's `ubuntu-24.04-arm` leg) are **not supported**:
+  the step no-ops with a notice, so that leg is unenforced. Recorded
+  fallback: block on x86, inert on arm — never drop the arm leg for it.
 - Linux-only enforcement; all jobs run on ubuntu runners.
 
 ## Decision record: SBOM — adopted for shipped images; edtf exempt

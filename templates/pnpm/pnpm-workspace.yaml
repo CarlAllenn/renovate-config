@@ -1,0 +1,70 @@
+# Canonical pnpm supply-chain block — copy-template class.
+#
+# Repos copy this block into pnpm-workspace.yaml below their `packages:` list;
+# propagation is a deliberate drift-audit, never automatic (see README.md in
+# this directory). Requires pnpm >= 11. Established in issue #5
+# (supply-chain baseline session, 2026-07-26).
+---
+# ── Release-age gate ────────────────────────────────────────────────────────
+# 14 days, matching the Renovate minimumReleaseAge and mise
+# minimum_release_age exactly: pnpm re-verifies LOCKFILE entries on install,
+# so any gap between this and the Renovate gate makes fresh Renovate branches
+# fail resolution until the stricter clock runs out. One number, three layers.
+minimumReleaseAge: 20160 # minutes = 14 days
+# Fail resolution when nothing in range is old enough — never fall back to a
+# younger version. (On by default once minimumReleaseAge is explicit; pinned
+# so a future default change can't weaken it.)
+minimumReleaseAgeStrict: true
+# Packages whose registry metadata lacks a `time` field skip the age gate by
+# default — close that hole; we only use registries that publish `time`.
+minimumReleaseAgeIgnoreMissingTime: false
+# Per-version escape hatch for the age gate (security fixes that can't wait
+# 14 days). Every entry needs an adjudication comment. Renovate-side security
+# bumps bypass its gate automatically via OSV alerts; this is the local twin.
+# minimumReleaseAgeExclude:
+#   - pkg@1.2.3 # CVE-XXXX-XXXXX fix, adjudicated YYYY-MM-DD
+
+# ── Publisher trust ─────────────────────────────────────────────────────────
+# Refuse versions whose trust evidence (trusted publisher > provenance >
+# nothing) is weaker than any earlier release of the same package.
+trustPolicy: no-downgrade
+# Versions published over a year ago pass on age alone: the no-downgrade
+# check exists to catch account-takeover releases, which are found within
+# days, not years. Replaces an ever-growing per-package trustPolicyExclude
+# list for pre-provenance-era releases.
+trustPolicyIgnoreAfter: 525600 # minutes = 1 year
+# Never treat the lockfile as pre-trusted; re-apply the age + trust gates to
+# every lockfile entry on install. (Default, pinned: this is the layer that
+# catches a lockfile poisoned under a weaker local policy.)
+trustLockfile: false
+
+# ── Resolution hardening ────────────────────────────────────────────────────
+# Transitive deps may only resolve from the registry/workspace — no git or
+# tarball URLs smuggled in below the direct-dependency level. (Default,
+# pinned.)
+blockExoticSubdeps: true
+# Subdependencies resolve only to versions published before the newest direct
+# dependency — a hijacked subdep published yesterday can't ride into a graph
+# whose direct deps predate it.
+resolutionMode: time-based
+strictPeerDependencies: true
+engineStrict: true
+
+# ── Build scripts ───────────────────────────────────────────────────────────
+# Unreviewed dependency build scripts fail the install (default, pinned).
+# Approvals go in allowBuilds with a review comment — never
+# dangerouslyAllowAllBuilds.
+strictDepBuilds: true
+# allowBuilds:
+#   pkg: true # why this build script is needed + reviewed, YYYY-MM-DD
+
+# ── Store integrity ─────────────────────────────────────────────────────────
+# Verify content-addressable-store files against their recorded hashes before
+# linking, and validate store name/version metadata. (Defaults, pinned.)
+verifyStoreIntegrity: true
+strictStorePkgContentCheck: true
+
+# ── Script-time freshness ───────────────────────────────────────────────────
+# Refuse to run scripts against a stale node_modules — forces an explicit
+# install so nobody runs code against dependencies they didn't resolve.
+verifyDepsBeforeRun: error

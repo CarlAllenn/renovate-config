@@ -1,13 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Shared Renovate policy for all CarlAllenn repos. Policy rationale lives in this repo's README; repo-specific rules stay in each repo's renovate.json.",
+  "description": "Shared Renovate policy for all CarlAllenn repos. Policy rationale lives in this repo's README; repo-specific rules stay in each repo's renovate.json. The 14-day minimumReleaseAge is one leg of the three-layer age-gate policy (Renovate + pnpm + mise, all 14 days - see templates/pnpm/README.md); security fixes bypass it via osvVulnerabilityAlerts.",
   "extends": [
     "config:best-practices",
     ":semanticCommits",
     ":separateMultipleMajorReleases",
     "group:linters"
   ],
-  "minimumReleaseAge": "3 days",
+  "minimumReleaseAge": "14 days",
   "osvVulnerabilityAlerts": true,
   "lockFileMaintenance": {
     "enabled": true,
@@ -66,18 +66,6 @@
       "matchUpdateTypes": ["digest", "pin", "pinDigest"],
       "automerge": true,
       "automergeType": "branch"
-    },
-    {
-      "description": "Runtime dependencies lose human review to automerge, so they wait the docs-recommended 14-day malware-scanner window (security fixes bypass this)",
-      "matchDepTypes": ["dependencies"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "minimumReleaseAge": "14 days"
-    },
-    {
-      "description": "mise-managed tools execute with full env access on dev machines and in CI - the same automerge-without-review rationale as runtime deps, so the same 14-day window (security fixes bypass this)",
-      "matchManagers": ["mise"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "minimumReleaseAge": "14 days"
     },
     {
       "description": "Group mise-managed tool pins into one PR (rust toolchain rides separately)",

@@ -16,8 +16,9 @@ account — new repos are born compliant.
 ## Policy (what `default.json` does)
 
 Built on `config:best-practices` (digest pinning for Docker images and GitHub
-Actions, pinned devDependencies, weekly lock file maintenance, npm 3-day
-release age, abandonment detection, config migration PRs), plus:
+Actions, pinned devDependencies, weekly lock file maintenance, abandonment
+detection, config migration PRs; its 3-day npm release age is raised to 14
+days below), plus:
 
 | Tier | Behavior |
 | --- | --- |
@@ -31,10 +32,15 @@ release age, abandonment detection, config migration PRs), plus:
 
 Guard rails that substitute for human review on the automerged tiers:
 
-- `minimumReleaseAge`: 3 days base, **14 days for runtime `dependencies`**
-  (the docs-recommended malware-scanner/unpublish window). Branches are not
-  even created until the age gate passes (`internalChecksFilter: strict` is
-  Renovate's default), so nothing burns CI while pending.
+- `minimumReleaseAge`: **14 days for everything** (the docs-recommended
+  malware-scanner/unpublish window). Branches are not even created until the
+  age gate passes (`internalChecksFilter: strict` is Renovate's default), so
+  nothing burns CI while pending. This is one leg of the **three-layer
+  age-gate policy**: the same 14 days is enforced at install time by pnpm
+  (`minimumReleaseAge: 20160`) and mise (`minimum_release_age = "336h"`) in
+  the consuming repos. The numbers must stay equal — pnpm re-verifies
+  lockfile entries on install, so a gap in either direction breaks Renovate
+  branches or opens a bypass. Rationale: `templates/pnpm/README.md`.
 - `osvVulnerabilityAlerts`: offline OSV checks on direct deps, including
   malicious-package protection (known-bad versions never get a PR).
 - Rust toolchain (mise `rust` pin) is never automerged — MSRV bumps are

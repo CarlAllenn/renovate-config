@@ -28,16 +28,21 @@ jobs:
           disable-sudo: true
           # Derived from the audit run plus the GitHub-owned
           # cold-cache set (mise tool installs on cache miss).
+          # Universal cold-cache set (templates/ci/prologue.yml).
           allowed-endpoints: >
             api.github.com:443
             codeload.github.com:443
+            files.pythonhosted.org:443
             github.com:443
             mise-versions.jdx.dev:443
             mise.jdx.dev:443
+            nodejs.org:443
             objects.githubusercontent.com:443
+            pypi.org:443
             raw.githubusercontent.com:443
             registry.npmjs.org:443
             release-assets.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -58,3 +63,44 @@ jobs:
         run: |
           LEFTHOOK_CONFIG=lefthook/universal.yml lefthook validate
           lefthook validate
+
+  secrets:
+    name: gitleaks history scan
+    runs-on: ubuntu-latest
+    steps:
+      # First step of every job, before checkout: runtime egress audit —
+      # enforcement per issue #6 canon (allowlist derived from audit run;
+      # templates/ci/ in this repo).
+      - uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          disable-sudo: true
+          # gitleaks itself makes no network calls; universal cold-cache
+          # set (templates/ci/prologue.yml).
+          allowed-endpoints: >
+            api.github.com:443
+            codeload.github.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            mise-versions.jdx.dev:443
+            mise.jdx.dev:443
+            nodejs.org:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            raw.githubusercontent.com:443
+            registry.npmjs.org:443
+            release-assets.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          # Full history: the scan re-applies the pinned ruleset to every
+          # commit, not just the tip (templates/gitleaks/README.md).
+          fetch-depth: 0
+      - uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+        with:
+          # renovate: datasource=github-releases depName=jdx/mise
+          version: 2026.7.12
+      # No Taskfile in this repo — invoked directly, same flags as the
+      # scan:secrets task the consuming repos wire.
+      - run: gitleaks git --no-banner --redact --verbose .

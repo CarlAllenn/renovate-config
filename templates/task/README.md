@@ -55,10 +55,11 @@ has stable remote configs; that's where live propagation genuinely fits.)
    - err on over-triggering — a missed source is a false skip and treated
      as a bug;
    - **never fingerprint security/secret scanners** — trivy fs,
-     `scan:bases`-class policy gates, AND vulnerability scans of built
-     artifacts: they must look at whatever changed, whatever it is, and CVE
-     scans have an input (the vulnerability database) no source checksum
-     can see. Repos with an always-on scan family add a weekly `schedule:`
+     `scan:bases`-class policy gates, vulnerability scans of built
+     artifacts, AND advisory-database-backed checks (cargo-deny's
+     advisories, and any future npm/pip audit): they must look at whatever
+     changed, whatever it is, and every one of them has an input (the
+     vulnerability/advisory database) no source checksum can see. Repos with an always-on scan family add a weekly `schedule:`
      trigger to the ci workflow so new CVEs surface during quiet weeks;
    - Task writes a checksum only after the task succeeds, and CI caches
      save only on green jobs — a failing gate can never be cached green;

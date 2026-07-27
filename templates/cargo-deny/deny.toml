@@ -16,6 +16,9 @@ all-features = true
 # v2 semantics: vulnerability/unsound/notice advisories error unconditionally;
 # the only opt-out is a reasoned `ignore` entry.
 yanked = "deny"
+# Unmaintained advisories fail for the whole graph, not just direct deps —
+# a transitive unmaintained crate is the same supply-chain exposure.
+unmaintained = "all"
 # Stale ignore entries fail the check instead of lingering.
 unused-ignored-advisory = "deny"
 # Every entry needs id/crate + reason:

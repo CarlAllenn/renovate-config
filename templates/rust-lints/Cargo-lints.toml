@@ -1,0 +1,67 @@
+# Canonical [workspace.lints] block — copy-template class (issue #8,
+# 2026-07-27). Paste into the workspace Cargo.toml of every Rust repo and
+# add `[lints] workspace = true` in each member crate. Identical across
+# repos; drift is audited, not automatic.
+#
+# Escalation model: manifest levels are `warn`; CI and the pre-commit clippy
+# hook run with `-D warnings`, turning every warn into a gate while keeping
+# local iteration humane. `forbid` is reserved for unsafe_code (cannot be
+# re-allowed downstream, even with a reason — that is the point).
+#
+# Doctrine notes:
+# - Wholesale pedantic/nursery/cargo is a recorded decision AGAINST the
+#   clippy book's cherry-pick advice: iiif-server ran full pedantic with
+#   zero allows before this baseline — proof it holds at our scale.
+# - restriction is cherry-picked (the group is self-contradictory by
+#   design). Every entry below is an individual decision.
+# - allow_attributes_without_reason makes the "every allow carries a
+#   reason" rule mechanical: `#[allow(lint)]` without `reason = "..."`
+#   fails the build.
+# - Known-noisy rustc lints (single_use_lifetimes,
+#   explicit_outlives_requirements) go IN first; an individual lint leaves
+#   only after it actually false-positives, with the removal recorded here.
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+unused_qualifications = "warn"
+elided_lifetimes_in_paths = "warn"
+let_underscore_drop = "warn"
+trivial_casts = "warn"
+trivial_numeric_casts = "warn"
+non_ascii_idents = "warn"
+unit_bindings = "warn"
+meta_variable_misuse = "warn"
+unused_lifetimes = "warn"
+redundant_lifetimes = "warn"
+unnameable_types = "warn"
+variant_size_differences = "warn"
+single_use_lifetimes = "warn"
+explicit_outlives_requirements = "warn"
+rust-2024-compatibility = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+# --- restriction tier: individual opt-ins, each a decision ---
+# Libraries return errors; they never crash the caller. Binaries (CLI) may
+# re-allow at crate level with reason = "top-level binary; panics are exit
+# paths" — that allow itself needs the reason string, enforced below.
+unwrap_used = "warn"
+expect_used = "warn"
+# Every unsafe block documents its safety argument. (unsafe_code = forbid
+# above makes this moot in workspace crates; it guards any future crate
+# that lowers the forbid with cause, e.g. wasm/pgrx FFI boundaries.)
+undocumented_unsafe_blocks = "warn"
+# The recorded-reason rule, mechanized.
+allow_attributes_without_reason = "warn"
+# Debug remnants never land.
+dbg_macro = "warn"
+todo = "warn"
+# Libraries do not own stdout/stderr; the CLI re-allows with reason.
+print_stdout = "warn"
+print_stderr = "warn"

@@ -1,0 +1,34 @@
+# Canonical release-plz config — copy-template class (issue #8, 2026-07-27).
+# The Release PR is the commitment point: merging it publishes, tags, and
+# creates the GitHub release (recorded doctrine change from tag-as-commitment,
+# agreed 2026-07-27 — the PR previews versions, changelog, and
+# cargo-semver-checks results BEFORE anything is published).
+
+[workspace]
+# Breaking-change detection gates the release preview (canonized in issue #7;
+# per-package opt-outs below need a recorded reason).
+semver_check = true
+changelog_update = true
+git_release_enable = true
+git_tag_enable = true
+# Publish only on Release PR merge, never on arbitrary pushes to main.
+release_always = false
+publish_timeout = "30m"
+
+# keep-a-changelog format via git-cliff. Conventional commits are NOT
+# required — non-conforming commits land under "Other" rather than being
+# dropped, so history stays honest either way.
+[changelog]
+protect_breaking_commits = true
+
+# PER-REPO: unified version — every publishable crate in one group, one
+# version number, one tag.
+# [[package]]
+# name = "<crate>"
+# version_group = "workspace"
+
+# PER-REPO: exemptions with recorded reasons, e.g. edtf-postgres:
+# [[package]]
+# name = "edtf-postgres"
+# semver_check = false  # SQL contract, not a Rust API —
+#                       # templates/cargo-semver-checks/README.md

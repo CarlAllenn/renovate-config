@@ -27,3 +27,15 @@ lockfile_platforms = ["macos-arm64", "linux-x64", "linux-arm64"]
 # asdf plugins are legacy (single-maintainer bash, no checksums); ubi is
 # deprecated upstream in favor of github:.
 disable_backends = ["asdf", "ubi"]
+# Precompiled ruby (jdx/ruby) rather than a ruby-build source compile.
+# Measured in monumental-archive (#150): 364s of a 394s cold CI install was
+# one `make -j 2`; the precompiled path is 5s and arrives with a checksum AND
+# GitHub artifact attestations, which the cache.ruby-lang.org tarball has not.
+# Set explicitly even though mise makes it the default in 2026.8.0: lockfile
+# entries are matched on `options` exactly, so the default flip invalidates
+# every existing ruby entry — and non-major mise bumps automerge as silent
+# branch pushes, so that would land unattended. Setting it here means the
+# change arrives with a reviewed `mise lock`, once, per repo. Repos with no
+# ruby pin are unaffected. If no precompiled build exists for a version, the
+# locked-mode install fails loudly rather than quietly recompiling (verified).
+ruby.compile = false

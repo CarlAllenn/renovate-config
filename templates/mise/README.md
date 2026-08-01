@@ -33,9 +33,13 @@ drift-audit — never automatic. Policy changes happen HERE first.
      records checksums for **all** `lockfile_platforms`, not just the machine
      that ran it;
    - **`pipx:`/`npm:`** for ecosystem CLIs. Lock entries are version-only
-     (no checksums) — compensating controls: 72h `minimum_release_age` is
-     forwarded to transitive deps (uv `--exclude-newer`, aube), and aube
-     denies dependency lifecycle scripts by default;
+     (no checksums) — compensating controls: the 14-day
+     `minimum_release_age` is forwarded to transitive deps (uv
+     `--exclude-newer`, aube), and aube denies dependency lifecycle scripts
+     by default. These two backends are the **only** place the age gate does
+     transitive filtering, and — with `pin = true` — very nearly the only
+     place it does anything at all: mise age-filters fuzzy version requests,
+     not explicit pins;
    - **`cargo:`** for Rust CLIs with no prebuilt release (source build with
      `--locked`);
    - **`conda:`** fixtures-only carve-out (see iiif-server

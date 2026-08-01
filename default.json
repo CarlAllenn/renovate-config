@@ -83,6 +83,11 @@
       "automerge": false
     },
     {
+      "description": "Majors never automerge, so their PRs sit open as the visibility mechanism - sometimes for weeks. config:best-practices brings :rebaseStalePrs (rebaseWhen: behind-base-branch), which rebases every one of them on every push to main, and each rebase costs a full CI run per open major. Measured in monumental-archive (#150): one parked branch accumulated 26 rebases. Rebasing buys nothing here - a major is not waiting to automerge on green, it is waiting for a human - so it only needs to happen when the branch actually conflicts. This makes automatic what the stop-updating label was doing by hand, late and inconsistently.",
+      "matchUpdateTypes": ["major"],
+      "rebaseWhen": "conflicted"
+    },
+    {
       "description": "Biome rides with the linters group (absent from Renovate's group:linters preset as of 2026-07)",
       "matchPackageNames": ["@biomejs/**"],
       "groupName": "linters"

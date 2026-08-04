@@ -32,12 +32,17 @@ days below), plus:
 
 Guard rails that substitute for human review on the automerged tiers:
 
-- `minimumReleaseAge`: **14 days for everything** (the docs-recommended
-  malware-scanner/unpublish window). Branches are not even created until the
+- `minimumReleaseAge`: **7 days for everything** — one full ecosystem cycle
+  including a weekend (when takeovers preferentially ship and detection is
+  slowest), comfortably past npm's 72h unpublish window. Was 14 days
+  (2026-08-01 → 2026-08-04); halved because the pnpm install-time gate is
+  security-blind, so every security fix younger than the gate costs a
+  manual adjudication entry, and 14 doubled that chore for no detection
+  benefit anyone has measured past one week. Branches are not even created until the
   age gate passes (`internalChecksFilter: strict` is Renovate's default), so
   nothing burns CI while pending. This is one leg of the **three-layer
-  age-gate policy**: the same 14 days is enforced at install time by pnpm
-  (`minimumReleaseAge: 20160`) and mise (`minimum_release_age = "336h"`) in
+  age-gate policy**: the same 7 days is enforced at install time by pnpm
+  (`minimumReleaseAge: 10080`) and mise (`minimum_release_age = "168h"`) in
   the consuming repos. The numbers must stay equal — pnpm re-verifies
   lockfile entries on install, so a gap in either direction breaks Renovate
   branches or opens a bypass. Rationale: `templates/pnpm/README.md`.

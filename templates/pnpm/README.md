@@ -9,13 +9,13 @@ reference.
 
 ## The three-layer 14-day policy
 
-One number — **14 days** — enforced at three independent points:
+One number — **7 days** — enforced at three independent points:
 
 | Layer | Setting | Where |
 | --- | --- | --- |
-| Renovate (bump time) | `minimumReleaseAge: "14 days"` | this repo's `default.json` |
-| pnpm (install time) | `minimumReleaseAge: 20160` | consuming repo `pnpm-workspace.yaml` |
-| mise (install time) | `minimum_release_age = "336h"` | consuming repo `mise.toml` |
+| Renovate (bump time) | `minimumReleaseAge: "7 days"` | this repo's `default.json` |
+| pnpm (install time) | `minimumReleaseAge: 10080` | consuming repo `pnpm-workspace.yaml` |
+| mise (install time) | `minimum_release_age = "168h"` | consuming repo `mise.toml` |
 
 The numbers must stay equal. pnpm re-verifies **lockfile entries** on every
 install, so a pnpm gate stricter than the Renovate gate makes fresh Renovate

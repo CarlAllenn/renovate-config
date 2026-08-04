@@ -55,13 +55,21 @@ not just an audit log.
   StepSecurity's API (its own endpoints are auto-allowed). That is the
   price of runtime egress visibility; the action is digest-pinned and
   Renovate-tracked like everything else.
-- Community-tier limits, verified empirically (2026-07-26): block-mode
-  **enforcement is local and works on private repos** (monumental-archive
-  runs enforced), but the insights dashboard needs the Enterprise app
-  there — allowlist changes are derived from logs/failures instead. ARM
-  runners (iiif-server's `ubuntu-24.04-arm` leg) are **not supported**:
-  the step no-ops with a notice, so that leg is unenforced. Recorded
-  fallback: block on x86, inert on arm — never drop the arm leg for it.
+- Community-tier limits, corrected by negative test (2026-08-04,
+  monumental-archive #155, run 30882947131): on PRIVATE repos the
+  community tier gives **telemetry only** — the DNS/endpoint log works,
+  but `egress-policy: block` does **not** enforce (a curl to an unlisted
+  host succeeded under block). Private-repo support is an Enterprise
+  feature per harden-runner's README. Enforcement DOES work on public
+  repos (iiif-server: four release attempts failed loud on unlisted
+  endpoints, its #69). The 2026-07-26 claim that private-repo
+  enforcement worked mistook the telemetry half for the whole. Private
+  repos keep block + allowlists anyway: documented intent, zero cost,
+  live the day the tier or visibility changes — but never count them as
+  a control there. ARM runners (iiif-server's `ubuntu-24.04-arm` leg)
+  are **not supported**: the step no-ops with a notice, so that leg is
+  unenforced. Recorded fallback: block on x86, inert on arm — never
+  drop the arm leg for it.
 - Linux-only enforcement; all jobs run on ubuntu runners.
 
 ## Decision record: SBOM — adopted for shipped images; edtf exempt

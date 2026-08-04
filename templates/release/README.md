@@ -1,11 +1,18 @@
 # Release engineering baseline (release-plz)
 
 Canonical release pipeline for publishable Rust repos — copy-template class,
-established in issue #8 (2026-07-27). First consumer: edtf. iiif-server is
-**deferred with a recorded trigger**: its name is temporary pending business
-strategy and nothing publishes — release engineering activates there when the
-naming decision lands, by applying this template. (Its SBOM job was pulled
-forward regardless — that never needed a release pipeline.)
+established in issue #8 (2026-07-27). First consumer: edtf.
+
+> **Status note (2026-08-04).** iiif-server's deferral ended: v0.1.0
+> shipped — but NOT on release-plz, which cannot package interdependent
+> workspace crates absent from a registry (release-plz#2595); it releases
+> via git-cliff + gh instead, recorded in its docs/release-engineering.md.
+> This template remains the canon for registry-publishing Rust repos
+> (edtf); workspace-inherited, unpublished-crate repos follow iiif's
+> pattern. The CI SBOM job the parenthetical below described was removed
+> the same day (SBOM posture: templates/publish/README.md — attach to what
+> you publish, scan nothing). Cross-repo publish invariants live in
+> templates/publish/.
 
 ## Decisions
 

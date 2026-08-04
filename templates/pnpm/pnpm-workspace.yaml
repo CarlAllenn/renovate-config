@@ -6,11 +6,11 @@
 # (supply-chain baseline session, 2026-07-26).
 ---
 # ── Release-age gate ────────────────────────────────────────────────────────
-# 14 days, matching the Renovate minimumReleaseAge and mise
+# 7 days, matching the Renovate minimumReleaseAge and mise
 # minimum_release_age exactly: pnpm re-verifies LOCKFILE entries on install,
 # so any gap between this and the Renovate gate makes fresh Renovate branches
 # fail resolution until the stricter clock runs out. One number, three layers.
-minimumReleaseAge: 20160 # minutes = 14 days
+minimumReleaseAge: 10080 # minutes = 7 days
 # Fail resolution when nothing in range is old enough — never fall back to a
 # younger version. (On by default once minimumReleaseAge is explicit; pinned
 # so a future default change can't weaken it.)
@@ -19,7 +19,7 @@ minimumReleaseAgeStrict: true
 # default — close that hole; we only use registries that publish `time`.
 minimumReleaseAgeIgnoreMissingTime: false
 # Per-version escape hatch for the age gate (security fixes that can't wait
-# 14 days). Every entry needs an adjudication comment. Renovate-side security
+# 7 days). Every entry needs an adjudication comment. Renovate-side security
 # bumps bypass its gate automatically via OSV alerts; this is the local twin.
 # minimumReleaseAgeExclude:
 #   - pkg@1.2.3 # CVE-XXXX-XXXXX fix, adjudicated YYYY-MM-DD

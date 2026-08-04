@@ -1,13 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Shared Renovate policy for all CarlAllenn repos. Policy rationale lives in this repo's README; repo-specific rules stay in each repo's renovate.json. The 14-day minimumReleaseAge is one leg of the three-layer age-gate policy (Renovate + pnpm + mise, all 14 days - see templates/pnpm/README.md); security fixes bypass it via osvVulnerabilityAlerts. Weekly Monday schedule batches all non-security activity into one wave; osvVulnerabilityAlerts ignores the schedule so CVE fixes still land same-day.",
+  "description": "Shared Renovate policy for all CarlAllenn repos. Policy rationale lives in this repo's README; repo-specific rules stay in each repo's renovate.json. The 7-day minimumReleaseAge is one leg of the three-layer age-gate policy (Renovate + pnpm + mise, all 7 days - see templates/pnpm/README.md); security fixes bypass it via osvVulnerabilityAlerts. Weekly Monday schedule batches all non-security activity into one wave; osvVulnerabilityAlerts ignores the schedule so CVE fixes still land same-day.",
   "extends": [
     "config:best-practices",
     ":semanticCommits",
     ":separateMultipleMajorReleases",
     "group:linters"
   ],
-  "minimumReleaseAge": "14 days",
+  "minimumReleaseAge": "7 days",
   "osvVulnerabilityAlerts": true,
   "schedule": ["before 6am on monday"],
   "automergeSchedule": ["before 6am on monday"],

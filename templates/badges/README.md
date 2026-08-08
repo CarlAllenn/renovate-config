@@ -7,6 +7,12 @@ took that repo from 6.3 toward its ceiling. Next adopters: iiif-server,
 monumental-archive-db, monumental-archive. Per-repo variance is real and
 noted where it bites; the traps are ~90% shared.
 
+Two later sections cover the badges that are **not** OpenSSF — coverage
+publication and citability. They are here because they are what is left
+once the OpenSSF pair hit the solo ceiling: the score does not move
+further, so the remaining honest wins are a number nobody had published
+and a citation nobody could make.
+
 ## The solo ceiling, stated up front
 
 Three Scorecard checks and the Best Practices **gold** badge are people
@@ -165,6 +171,56 @@ in `criteria/criteria.yml` and the question text in
   defensive-unreachable. Never write tests that call code purely to have
   called it.
 
+## Publishing the number — Codecov without the gate
+
+Measuring coverage and publishing it are separate jobs, and the second one
+gets forgotten: edtf measured for weeks while writing `lcov.info` into a
+build artefact nobody ever opened. Wiring the badge is an afternoon. Every
+trap below cost a run to find (edtf #141, PRs #143/#146/#148, 2026-08-09).
+
+- **Codecov's defaults reinstate the gate you just refused.** It posts
+  `codecov/project` and `codecov/patch` commit statuses against an
+  auto-computed target — a merge-blocking coverage threshold in everything
+  but name. Where the repo's position is "measure, don't gate", a
+  `codecov.yml` turning both off is not a nicety, it is the entire point.
+  **Quote the values**: `off` is a YAML truthy, so a strict yamllint
+  rejects `project: off`. Write `project: 'off'`.
+- **Mirror the llvm-cov exclusion into Codecov's `ignore:`.** The
+  harness-invisible-tests trap above, one layer up — exclude a crate from
+  the metric but not from Codecov and the badge reads lower than the job
+  summary, for a reason nobody will find quickly.
+- **OIDC, not a token.** `use_oidc: true` means no long-lived
+  `CODECOV_TOKEN` secret has to exist. Job-level `id-token: write` costs
+  nothing on Scorecard Token-Permissions — measured on edtf, whose
+  publish.yml already carries it while that check reads 10/10. zizmor at
+  `--persona=pedantic` wants the explanatory comment **inline on the
+  permission line**; a comment block above it still trips
+  `undocumented-permissions`.
+- **The egress hosts, measured rather than guessed** (harden-runner
+  `egress-policy: block`): `cli.codecov.io` (CLI download), `keybase.io`
+  (GPG signature verify), `ingest.codecov.io` (the POST) and
+  `storage.googleapis.com` (presigned PUT of the report body). **Not**
+  `api.codecov.io`, which is never resolved, and **not** `codecov.io`,
+  which appears only as the OIDC audience string. edtf shipped those two
+  wrong ones first, and every upload failed silently.
+- **`disable_telem: true`.** The CLI otherwise calls Sentry
+  (`o26192.ingest.us.sentry.io`); a blocking policy drops it, and the audit
+  log fills with a request nobody wanted made.
+- **`fail_ci_if_error: false` means a broken upload merges green.** The
+  right trade for a non-gating job, and the cost is not theoretical: edtf
+  merged the entire feature with the upload failing on every run and found
+  out only by reading the step log. Read that log once after the first run
+  instead of trusting the check mark.
+- **Activation is a second blocker that looks identical to the first.**
+  Until a human clicks Configure on codecov.io, uploads answer
+  `{"message":"Repository not found"}` while the action still reports
+  success. Workflow-correct and repo-registered are independent conditions;
+  expect to satisfy them one at a time.
+- Fork PRs get no OIDC token — the action detects the fork and skips.
+- **Free for public repos**: unlimited uploads and users, no card. Harness
+  acquired Codecov from Sentry in June 2026; terms unchanged as of
+  2026-08-09. Badge: `img.shields.io/codecov/c/github/<owner>/<repo>`.
+
 ## Filling the questionnaire — from edtf's registration (2026-08-08)
 
 The form-filling afternoon compresses to under an hour with the site's
@@ -241,8 +297,63 @@ to reindent). CI: `fsfe/reuse-action`, SHA-pinned, one docker pull
 badge requires registering the repo — owner's email, confirmation link.
 Working example: edtf PR #114.
 
+## Citability — CITATION.cff and a Zenodo DOI
+
+Worth it only where people actually cite the software: libraries, archives,
+museums, digital humanities, research tooling. For those audiences it beats
+another green checkmark, because "which version did you run?" is a question
+their papers have to answer. Skip it for a web service. Canonized from
+edtf #142 / PRs #145 and #150 (2026-08-09).
+
+- **Zenodo is free** — CERN-operated, DOIs minted through DataCite, no tier
+  to buy. Sign in with GitHub, then toggle the repo in Settings → GitHub.
+- **It never backfills.** Only releases created *after* the toggle are
+  archived, so no DOI exists until the next release, and the "Enabled
+  Repositories" panel stays empty until a deposit does. That empty panel is
+  the expected state and looks exactly like a failure — say so in the
+  runbook or it gets debugged.
+- **Concept DOI, never a version DOI.** Zenodo mints a version DOI per
+  release under a stable concept DOI that resolves to the newest. The badge
+  and `CITATION.cff` want the concept one; a version DOI is wrong within a
+  single release.
+- **Skip `.zenodo.json`.** It overrides `CITATION.cff` and buys finer
+  control at the price of two metadata files describing one project.
+  Record the omission as a decision, or someone adds it back later.
+- **`version:` and `date-released:` rot silently.** release-plz cannot see
+  the file. Put the sync in whatever script already does the things the
+  release tool cannot — and name the asymmetry while you are there: the
+  other entries in such a script fail the lint gate when forgotten, this
+  one just goes on claiming an old version, which is the worse failure.
+- **Two tooling blind spots, because `.cff` is YAML wearing a non-YAML
+  extension.** yamllint discovers `*.yml`/`*.yaml` only, so name the file
+  explicitly in the lint command. The canonical editorconfig config-formats
+  glob does not match it either, so it inherits the `[*]` indent — add a
+  repo-local `[*.cff]` block rather than editing the canon glob.
+- **Gate the schema, and not with the obvious tool.** yamllint proves the
+  file is YAML, not that it is CFF, and the edits that break it are
+  misspelled keys, a wrong `authors` shape, a malformed `identifiers:`
+  block (which is exactly what adding the DOI later involves). cffconvert
+  is the format's canonical validator and last shipped **September 2021** —
+  do not pin five-year-old tooling into a repo that sets
+  `unmaintained = "all"`. Use
+  `check-jsonschema --builtin-schema vendor.citation-file-format`: 0.37.4
+  (June 2026), `pipx:` backend, and the schema travels inside the tool, so
+  the gate stays offline and no vendored schema copy drifts here.
+  **Negative-test it** — misspelling `license:` as `licence:` must exit 1.
+  That typo is likely rather than hypothetical in any repo running an en-GB
+  prose register over an en-US key.
+- The failure being gated is silent. An invalid file breaks no build, no
+  release and no user; GitHub simply stops rendering "Cite this
+  repository", and nobody notices until they go looking for a citation.
+
 ## Consumers
 
 edtf (canonical, first adopter — scheduled.yml scorecard job, publish.yml
-bundle-asset steps, and the doc pack all live there as working examples);
-iiif-server and monumental-archive-db pending.
+bundle-asset steps, the doc pack, `.github/codecov.yml` and `CITATION.cff`
+all live there as working examples); iiif-server and monumental-archive-db
+pending.
+
+Coverage publication and citability are independent of the OpenSSF work and
+of each other — adopt either alone. Citability in particular is audience-led
+rather than baseline: iiif-server and monumental-archive-db plausibly want
+it, a private service does not.

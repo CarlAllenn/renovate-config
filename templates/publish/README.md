@@ -59,9 +59,29 @@ digest has its state on the run log.
 ## SBOM posture
 
 **Attach to what you publish; scan nothing SBOM-shaped.** Image publishers
-set `sbom: true` + `provenance: true` on the push step (SPDX rides the
+set `sbom: true` + `provenance: mode=max` on the push step (SPDX rides the
 image as an attestation); release publishers attach SBOMs as release
-assets. SBOM-*scanning* jobs and dependency-snapshot submission are
+assets.
+
+`mode=max`, not `provenance: true`: `true` resolves to mode=min, which
+records no materials — so the resolved base image digest appears nowhere
+in the attestation, and "which base did this image ship on?" becomes
+unanswerable after the fact. Check the build args are non-secret first,
+since max embeds the full input set (a published tarball checksum is
+fine; a token is not).
+
+**An image's own base is a build input to a signed artifact.** It belongs
+in the same digest-pinned table as the images the build and smoke-test
+scripts use (`base-images.sh` class), not floating on a mutable tag —
+even when the image is meant for `COPY --from` consumption and build-stage
+consumers inherit none of its layers, because the same image also runs
+directly and those users inherit all of it. Where a matrix makes the base
+vary (`postgres:<major>-…`), pass the looked-up reference in as a build
+arg (`ARG BASE_IMAGE` / `FROM ${BASE_IMAGE}`) rather than duplicating the
+digests into the Dockerfile. Scorecard's Pinned-Dependencies check cannot
+follow a variable and will still flag the line; that is a false negative
+worth accepting — the alternative is a second copy of the digest table,
+which is the drift the single table exists to prevent. SBOM-*scanning* jobs and dependency-snapshot submission are
 rejected (monumental-archive#148/#166): trivy opens the actual artifact
 and does the same CVE matching against the same databases — a snapshot
 pipeline is a second notification surface for a gap that is not open.

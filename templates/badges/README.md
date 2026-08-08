@@ -47,11 +47,31 @@ lands roughly **8.0–8.5** on Scorecard and **silver** on the badge.
   `rustup-init.sha256` files), and `curl | python3 -c` over *data* —
   scanner can't tell JSON from code, so fetch to a file and parse the
   file. Zero-cost appeasement, and the first one is a real fix.
-- **The solo-compatible Branch-Protection set** (~3 → ~6): strict status
-  checks with required contexts, enforce-admins, required linear history,
-  required conversation resolution, force-push and deletion blocked,
+- **The solo-compatible Branch-Protection set** (3 → 4, measured on edtf
+  2026-08-08 against scorecard v5.5.0 — an earlier revision of this file
+  guessed ~6): strict status checks with required contexts,
+  enforce-admins, required linear history, required conversation
+  resolution, force-push and deletion blocked,
   `required_approving_review_count: 0`. Required reviewers is the tier
   you cannot have; everything else you can.
+- **Express it as a repository ruleset, not classic branch protection.**
+  This is the whole reason the set scores at all: classic branch
+  protection is NOT publicly readable, so the OpenSSF scan (which runs
+  unprivileged) cannot see it and hedges — `PRs are not required to make
+  changes on branch 'main'; or we don't have data to detect it`. Rulesets
+  are always public. Migrating edtf's identical settings into a ruleset,
+  changing no behaviour whatsoever, took Branch-Protection 3 → 4: the
+  scan stopped guessing and credited stale-review dismissal,
+  up-to-date-branches and PRs-required, all of which were already on.
+  Both mechanisms can coexist; GitHub applies the stricter.
+- **Leave `require_last_push_approval` OFF on a solo repo.** It reads
+  like a free toggle at `required_approving_review_count: 0` and is not.
+  GitHub documents it as a sub-option of the review requirement meaning
+  "at least one other authorized reviewer has approved any changes" — so
+  enabling it demands an approval that a lone maintainer cannot give
+  (self-approval is forbidden), and what it blocks is merging into the
+  default branch, i.e. the release path. It buys no Scorecard points
+  either, since the tier fails on the approver count regardless.
 - **SAST is the cheapest 10 on the board.** One CodeQL workflow —
   `codeql.yml` in this directory. Rust uses `build-mode: none` (no
   toolchain install, no conflict with feature-exclusive crates); the
@@ -157,25 +177,45 @@ percent if you don't know them:
   past ~8 KB), load, hit one Submit per batch. Works on all metal and
   baseline levels. **It only fills criteria still at `?`** — flipping an
   already-answered criterion needs the actual radio button.
-- **The analyzer force-overrides two criteria on every save.**
+- **The analyzer can force-override two criteria on save.**
   `license_location` and `release_notes` are re-detected server-side and
-  a human Met answer is silently reverted to Unmet ("changed from 'Met'
-  to 'Unmet'" in the flash message) if the detector disagrees. Fix the
-  *repo*, not the form: dual-licensed Rust repos (`LICENSE-MIT` +
-  `LICENSE-APACHE`) defeat its filename matcher — add a `LICENSE.md`
-  stating the SPDX expression and linking both texts, which repairs both
-  `license_location` and GitHub's own licence detection.
-- **`LICENSE.md` does NOT repair Scorecard's License check** — an earlier
-  revision of this file claimed it did. Measured on edtf after the
-  LICENSE.md landed: License still scores **9**, `project has a license
-  file: LICENSE.md:0` / `project license file does not contain an FSF or
-  OSI license`. The two detectors want opposite things. The badge matches
-  on *filename* and is satisfied by a pointer; Scorecard runs licence
-  *detection over the content* of the file it picks, and a pointer that
-  links to `LICENSE-MIT`/`LICENSE-APACHE` contains no detectable licence
-  text. Adding LICENSE.md is still right — it buys `license_location` and
-  GitHub's sidebar — but budget the Scorecard point as unpaid, and do not
-  spend an evening re-deriving why.
+  a human Met answer is reverted to Unmet ("changed from 'Met' to
+  'Unmet'" in the flash message) if the detector disagrees. Note it did
+  NOT fire on any of three edtf saves on 2026-08-08, so it appears
+  conditional on actual disagreement rather than unconditional on every
+  save — but re-read both fields after saving regardless.
+- **Do NOT add a `LICENSE.md` pointer file.** Two earlier revisions of
+  this file recommended it; both were wrong, and the second was wrong in
+  the more expensive direction — it conceded the Scorecard point as
+  "unpaid" when LICENSE.md was in fact *causing* the loss. Measured on
+  edtf 2026-08-08, removing it (edtf#139) moved **Scorecard License
+  9 → 10** and **GitHub's own detection `NOASSERTION` → `Apache-2.0`**,
+  while `license_location` stayed Met throughout. So it bought neither of
+  the two things it was kept for.
+  The mechanism: every detector ranks a file named `LICENSE`/`LICENSE.md`
+  above `LICENSE-<name>`, so the pointer is the file that gets
+  classified — and a pointer contains no licence text. Removing it lets
+  both land on `LICENSE-APACHE`. This is simply what the dual-licensed
+  Rust ecosystem does; serde-rs/serde and rust-lang/regex carry exactly
+  `LICENSE-APACHE` + `LICENSE-MIT` with no `LICENSE.md`, and both report
+  `Apache-2.0` to GitHub and score License 10/10.
+  **Canonical layout for a dual-licensed repo:** `LICENSE-APACHE` and
+  `LICENSE-MIT` at the root, a `## License` section in the README
+  carrying the SPDX expression and the contribution clause, `license =
+  "MIT OR Apache-2.0"` in the workspace manifest, and SPDX headers in
+  sources. Nothing named `LICENSE.md`.
+  **If you are removing an existing LICENSE.md, grep the badge record
+  for it first** — justification prose that cites the file becomes a live
+  404. On edtf it appeared twice: `license_location` and the Baseline
+  criterion `OSPS-LE-03.02`, which duplicates the same paragraph.
+- **Three gold criteria sit Met-but-incomplete until the justification
+  contains a URL**: `test_invocation`, `hardening` and `hardened_site`.
+  The form reports "URL required but missing" and silently withholds the
+  credit — on edtf that was **13 % of gold** (70 → 83) sitting unclaimed
+  behind prose that was already true. Cite the repo docs that prove each
+  one; a scan URL is fine for `hardened_site`, but verify the headers
+  yourself (`curl -I`) so the justification names what is actually served
+  rather than asserting it.
 - **Silver is reachable with bus factor 1**: `bus_factor` is a SHOULD at
   silver, so Unmet-with-justification (pointing at GOVERNANCE.md access
   continuity) still awards the badge. It becomes a MUST at gold.

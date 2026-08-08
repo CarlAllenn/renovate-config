@@ -129,6 +129,51 @@ in `criteria/criteria.yml` and the question text in
   defensive-unreachable. Never write tests that call code purely to have
   called it.
 
+## Filling the questionnaire — from edtf's registration (2026-08-08)
+
+The form-filling afternoon compresses to under an hour with the site's
+own automation mechanism, and two of its behaviours will eat the last
+percent if you don't know them:
+
+- **URL-prefill is the fast path.** `/en/projects/<id>/<level>/edit`
+  accepts `?<criterion>_status=Met&<criterion>_justification=...` query
+  parameters — batch a dozen criteria per URL (the server rejects URIs
+  past ~8 KB), load, hit one Submit per batch. Works on all metal and
+  baseline levels. **It only fills criteria still at `?`** — flipping an
+  already-answered criterion needs the actual radio button.
+- **The analyzer force-overrides two criteria on every save.**
+  `license_location` and `release_notes` are re-detected server-side and
+  a human Met answer is silently reverted to Unmet ("changed from 'Met'
+  to 'Unmet'" in the flash message) if the detector disagrees. Fix the
+  *repo*, not the form: dual-licensed Rust repos (`LICENSE-MIT` +
+  `LICENSE-APACHE`) defeat its filename matcher — add a `LICENSE.md`
+  stating the SPDX expression and linking both texts, which also repairs
+  GitHub's own licence detection and Scorecard's License check.
+- **Silver is reachable with bus factor 1**: `bus_factor` is a SHOULD at
+  silver, so Unmet-with-justification (pointing at GOVERNANCE.md access
+  continuity) still awards the badge. It becomes a MUST at gold.
+- **The Baseline series is nearly free once metal is done.** Same
+  evidence, different criterion IDs (`osps_ac_01_01`-style params).
+  Baseline-1 and -2 complete from existing answers; Baseline-3 caps at
+  ~95 % solo (OSPS-QA-07.01 is non-author review) with one genuinely
+  fixable row: OSPS-VM-04.02 wants deny.toml non-exploitability
+  rationale as a formal VEX document — a small OpenVEX JSON with a
+  `not_affected` statement, referenced from SECURITY.md, mirroring the
+  guarded ignore (edtf: `.vex/edtf.openvex.json`).
+
+## REUSE compliance — one manifest if SPDX headers already exist
+
+The SPDX-headers pass (gold `copyright_per_file`/`license_per_file`)
+leaves a repo one file short of [REUSE](https://reuse.software)
+compliance: a `REUSE.toml` with a blanket project-licence annotation at
+`precedence = "closest"` (in-file headers win) covers everything that
+cannot carry a header, plus canonical texts in `LICENSES/` (exclude that
+directory from editorconfig-checker — verbatim licence text is not ours
+to reindent). CI: `fsfe/reuse-action`, SHA-pinned, one docker pull
+(harden-runner needs the Docker Hub endpoints). The api.reuse.software
+badge requires registering the repo — owner's email, confirmation link.
+Working example: edtf PR #114.
+
 ## Consumers
 
 edtf (canonical, first adopter — scheduled.yml scorecard job, publish.yml

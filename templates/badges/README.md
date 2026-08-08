@@ -20,6 +20,12 @@ questions, not engineering ones. Do not burn time on them:
   significant contributors, 50 % non-author review). Fill the gold
   questionnaire anyway — the site shows a public per-level percentage and
   every Met answer counts toward it.
+  **Several gold criteria need a URL, not prose.** `hardened_site`,
+  `hardening` and `test_invocation` render as unmet with "URL required,
+  but no URL found" when the justification is an explanation rather than
+  a link — the practice being genuinely in place changes nothing. Cheap
+  percent, invisibly lost: put a real link in every justification (a docs
+  anchor, a workflow file, a headers report) and keep the prose after it.
 
 Everything else is reachable. A solo repo that does everything below
 lands roughly **8.0–8.5** on Scorecard and **silver** on the badge.
@@ -57,6 +63,16 @@ lands roughly **8.0–8.5** on Scorecard and **silver** on the badge.
   stragglers hide (see downloadThenRun above). The check's shell parser
   chokes on some legal bash and reports "possibly incomplete results" —
   those infos are score-neutral; do not contort working shell for them.
+  It also counts **container images**, and that is where a reasoned
+  architecture can legitimately lose a point: edtf publishes an OCI image
+  whose `FROM postgres:${PG}-trixie` floats deliberately, because the
+  image is consumed as a build stage and no consumer inherits its base
+  layers — there is no CVE-rebuild obligation to honour. The tag is also
+  a build ARG, so one digest cannot serve five majors; pinning would mean
+  threading `BASE_IMAGE` through from the digest table. Decide once,
+  write the reason in the Dockerfile header, and accept the 9. **Do not
+  reverse a documented position to buy a Scorecard point** — the check
+  cannot see the argument, which is a limit of the check, not a defect.
 - **Vulnerabilities counts unmaintained-crate notices.** An advisory
   reachable only through a framework dependency (edtf: RUSTSEC-2021-0127,
   serde_cbor via pgrx) docks a point until upstream moves. Document the
@@ -147,8 +163,19 @@ percent if you don't know them:
   to 'Unmet'" in the flash message) if the detector disagrees. Fix the
   *repo*, not the form: dual-licensed Rust repos (`LICENSE-MIT` +
   `LICENSE-APACHE`) defeat its filename matcher — add a `LICENSE.md`
-  stating the SPDX expression and linking both texts, which also repairs
-  GitHub's own licence detection and Scorecard's License check.
+  stating the SPDX expression and linking both texts, which repairs both
+  `license_location` and GitHub's own licence detection.
+- **`LICENSE.md` does NOT repair Scorecard's License check** — an earlier
+  revision of this file claimed it did. Measured on edtf after the
+  LICENSE.md landed: License still scores **9**, `project has a license
+  file: LICENSE.md:0` / `project license file does not contain an FSF or
+  OSI license`. The two detectors want opposite things. The badge matches
+  on *filename* and is satisfied by a pointer; Scorecard runs licence
+  *detection over the content* of the file it picks, and a pointer that
+  links to `LICENSE-MIT`/`LICENSE-APACHE` contains no detectable licence
+  text. Adding LICENSE.md is still right — it buys `license_location` and
+  GitHub's sidebar — but budget the Scorecard point as unpaid, and do not
+  spend an evening re-deriving why.
 - **Silver is reachable with bus factor 1**: `bus_factor` is a SHOULD at
   silver, so Unmet-with-justification (pointing at GOVERNANCE.md access
   continuity) still awards the badge. It becomes a MUST at gold.
